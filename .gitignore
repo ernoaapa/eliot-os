@@ -1,0 +1,9 @@
+
+# Downloaded images
+images
+
+# Linuxkit
+*-cmdline
+*-initrd.img
+*-kernel
+*-state/

@@ -1,0 +1,89 @@
+kernel:
+  image: linuxkit/kernel:4.9.62
+  cmdline: "console=tty0 console=ttyS0 console=ttyAMA0"
+init:
+  - linuxkit/init:42a92119e1ca10380e0d33e26c0cbcf85b9b3558
+  - linuxkit/runc:1b0741d07949c0acc444cd6a04ee7f833443579d
+  - linuxkit/containerd:bfb61cc1d26c39cd4b2bc08f7a9963fefa0ef3bf
+  - linuxkit/ca-certificates:af4880e78edc28743f7c5e262678c67c6add4c26
+onboot:
+  - name: sysctl
+    image: linuxkit/sysctl:a9ad57ed738a31ea9380cd73236866c312b35489
+    
+    # https://github.com/linuxkit/linuxkit/blob/master/docs/platform-rpi3.md#networking
+  - name: netdev
+    image: linuxkit/modprobe:2d153653d1111877a8f53704ef85063a44182ade
+    command: ["modprobe", "smsc95xx"]
+
+  - name: dhcpcd
+    image: linuxkit/dhcpcd:48831507404049660b960e4055f544917d90378e
+    command: ["/sbin/dhcpcd", "--nobackground", "-f", "/dhcpcd.conf", "-1"]
+  - name: format
+    image: linuxkit/format:be811ded880af37a916f23bc9ddb274026ccc514
+  - name: mount
+    image: linuxkit/mount:ef2e2106212b2d333b548821191f04da984ef48f
+    command: ["/usr/bin/mountie", "/var/lib"]
+services:
+  - name: getty
+    image: linuxkit/getty:6af22c32c98536a79230eef000e9abd06b037faa
+    env:
+    # Makes the terminal open without password prompt
+     - INSECURE=true
+  - name: ntpd
+    image: linuxkit/openntpd:07a80c3e3e816658318ac027e1253ff9a228b8de
+  - name: dhcpcd
+    image: linuxkit/dhcpcd:48831507404049660b960e4055f544917d90378e 
+  # - name: sshd
+  #   image: linuxkit/sshd:b7f21ef1b13300a994e35eac3644e4f84f0ada8a
+  #   capabilities:
+  #     - all
+  #   binds:
+  #     - /etc/resolv.conf:/etc/resolv.conf
+  #     - /usr/bin/runc:/usr/bin/runc
+  #     - /usr/bin/ctr:/usr/bin/ctr # ctr for debugging
+  #     - /containers:/containers # ctr requires access to be able to manage containers
+  #     - /var/lib/volumes:/volumes # The directory for pod volumes
+  #     - /run/containerd:/run/containerd # need access to sockets
+  #     - /var/log:/var/log # To be able to run 'ctr t attach' to view logs
+  #     - /run/containerd/containerd.sock:/run/containerd/containerd.sock
+  #     - /tmp:/tmp
+
+  - name: discovery
+    image: eaapa/elliot-discovery:93771fd
+    command: ["/elliot-discovery", "--debug", "--expose", "5000"]
+    net: host
+    binds:
+      - /etc/machine-id:/etc/machine-id
+  - name: elliotd
+    image: eaapa/elliotd:93771fd
+    command: ["/elliotd", "--debug", "--listen", "0.0.0.0:5000"]
+    capabilities:
+      - all
+    net: host
+    pid: host
+    runtime:
+      mkdir: ["/var/lib/volumes"]
+    binds:
+      - /containers:/containers
+      - /var/lib/volumes:/var/lib/volumes
+      - /var/lib/containerd:/var/lib/containerd
+      - /run/containerd:/run/containerd
+      - /etc/resolv.conf:/etc/resolv.conf
+      - /etc/machine-id:/etc/machine-id
+      - /var/log:/var/log # To be able to serve default containers logs through api
+      - /tmp:/tmp # To be able to read temporary fifo log files
+files:
+  - path: root/.ssh/authorized_keys
+    source: /root/.ssh/authorized_keys
+    mode: "0600"
+    optional: true
+  - path: /etc/hostname
+    contents: raspi-abcde2e2f1e1
+  - path: /etc/issue
+    source: ./banner.txt
+  - path: /etc/machine-id
+    contents: "104CECBC-6037-5FCF-AF75-80EB7040CD22"
+    mode: "0600"
+trust:
+  org:
+    - linuxkit
