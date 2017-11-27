@@ -1,5 +1,5 @@
 # Build in Packet
-Notes how to build ElliotOS in Packet ARM based server.
+Notes how to build EliotOS in Packet ARM based server.
 
 1. Start new server in Packet
 - Type A2

@@ -1,5 +1,5 @@
 kernel:
-  image: linuxkit/kernel:4.9.62
+  image: linuxkit/kernel:4.9.64
   cmdline: "console=tty0 console=ttyS0 console=ttyAMA0"
 init:
   - linuxkit/init:42a92119e1ca10380e0d33e26c0cbcf85b9b3558
@@ -49,14 +49,14 @@ services:
   #     - /tmp:/tmp
 
   - name: discovery
-    image: eaapa/elliot-discovery:93771fd
-    command: ["/elliot-discovery", "--debug", "--expose", "5000"]
+    image: ernoaapa/eliot-discovery:caa1905
+    command: ["/eliot-discovery", "--debug", "--expose", "5000"]
     net: host
     binds:
       - /etc/machine-id:/etc/machine-id
-  - name: elliotd
-    image: eaapa/elliotd:93771fd
-    command: ["/elliotd", "--debug", "--listen", "0.0.0.0:5000"]
+  - name: eliotd
+    image: ernoaapa/eliotd:caa1905
+    command: ["/eliotd", "--debug", "--listen", "0.0.0.0:5000"]
     capabilities:
       - all
     net: host
