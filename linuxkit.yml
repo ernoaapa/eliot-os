@@ -1,10 +1,10 @@
 kernel:
-  image: linuxkit/kernel:4.9.64
+  image: linuxkit/kernel:4.9.66
   cmdline: "console=tty0 console=ttyS0 console=ttyAMA0"
 init:
-  - linuxkit/init:42a92119e1ca10380e0d33e26c0cbcf85b9b3558
+  - linuxkit/init:7357177a8be310e40fef7424305a72c198e857c4
   - linuxkit/runc:1b0741d07949c0acc444cd6a04ee7f833443579d
-  - linuxkit/containerd:bfb61cc1d26c39cd4b2bc08f7a9963fefa0ef3bf
+  - linuxkit/containerd:737e4b004e28510d2dd504942b80fa5ffa409315
   - linuxkit/ca-certificates:af4880e78edc28743f7c5e262678c67c6add4c26
 onboot:
   - name: sysctl
@@ -19,13 +19,13 @@ onboot:
     image: linuxkit/dhcpcd:48831507404049660b960e4055f544917d90378e
     command: ["/sbin/dhcpcd", "--nobackground", "-f", "/dhcpcd.conf", "-1"]
   - name: format
-    image: linuxkit/format:be811ded880af37a916f23bc9ddb274026ccc514
+    image: linuxkit/format:6b46d0450082f397177da36be6b4d74d93eacd1e
   - name: mount
-    image: linuxkit/mount:ef2e2106212b2d333b548821191f04da984ef48f
+    image: linuxkit/mount:41685ecc8039643948e5dff46e17584753469a7a
     command: ["/usr/bin/mountie", "/var/lib"]
 services:
   - name: getty
-    image: linuxkit/getty:6af22c32c98536a79230eef000e9abd06b037faa
+    image: linuxkit/getty:7bf4b3efef2a65c97ffb4decc1010cd4a232932b
     env:
     # Makes the terminal open without password prompt
      - INSECURE=true
@@ -33,29 +33,31 @@ services:
     image: linuxkit/openntpd:07a80c3e3e816658318ac027e1253ff9a228b8de
   - name: dhcpcd
     image: linuxkit/dhcpcd:48831507404049660b960e4055f544917d90378e 
-  # - name: sshd
-  #   image: linuxkit/sshd:b7f21ef1b13300a994e35eac3644e4f84f0ada8a
-  #   capabilities:
-  #     - all
-  #   binds:
-  #     - /etc/resolv.conf:/etc/resolv.conf
-  #     - /usr/bin/runc:/usr/bin/runc
-  #     - /usr/bin/ctr:/usr/bin/ctr # ctr for debugging
-  #     - /containers:/containers # ctr requires access to be able to manage containers
-  #     - /var/lib/volumes:/volumes # The directory for pod volumes
-  #     - /run/containerd:/run/containerd # need access to sockets
-  #     - /var/log:/var/log # To be able to run 'ctr t attach' to view logs
-  #     - /run/containerd/containerd.sock:/run/containerd/containerd.sock
-  #     - /tmp:/tmp
+  
+  # For debugging
+  - name: sshd
+    image: linuxkit/sshd:b7f21ef1b13300a994e35eac3644e4f84f0ada8a
+    capabilities:
+      - all
+    binds:
+      - /etc/resolv.conf:/etc/resolv.conf
+      - /usr/bin/runc:/usr/bin/runc
+      - /usr/bin/ctr:/usr/bin/ctr # ctr for debugging
+      - /containers:/containers # ctr requires access to be able to manage containers
+      - /var/lib/volumes:/volumes # The directory for pod volumes
+      - /run/containerd:/run/containerd # need access to sockets
+      - /var/log:/var/log # To be able to run 'ctr t attach' to view logs
+      - /run/containerd/containerd.sock:/run/containerd/containerd.sock
+      - /tmp:/tmp
 
   - name: discovery
-    image: ernoaapa/eliot-discovery:caa1905
+    image: ernoaapa/eliot-discovery:7d4ad07
     command: ["/eliot-discovery", "--debug", "--expose", "5000"]
     net: host
     binds:
       - /etc/machine-id:/etc/machine-id
   - name: eliotd
-    image: ernoaapa/eliotd:caa1905
+    image: ernoaapa/eliotd:7d4ad07
     command: ["/eliotd", "--debug", "--listen", "0.0.0.0:5000"]
     capabilities:
       - all
