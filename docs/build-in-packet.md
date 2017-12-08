@@ -18,7 +18,6 @@ ln -s /usr/lib/go-1.9/bin/go /usr/local/bin/go
 
 4. Install Moby & Linuxkit
 ```shell
-go get -u github.com/moby/tool/cmd/moby
 go get -u github.com/linuxkit/linuxkit/src/cmd/linuxkit
 ```
 
@@ -42,7 +41,7 @@ sudo apt-get install -y docker-ce
 7. Build RasperryPI image
 ```shell
 export PATH="$PATH:/root/go/bin"
-moby build -format rpi3 linuxkit.yml
+linuxkit build -format rpi3 linuxkit.yml
 ```
 
 8. Download image

@@ -8,15 +8,15 @@ EliotOS is minimal Linux Operating System, built with [Linuxkit](https://github.
 
 ## Run locally
 ### Prerequisites
-- [Moby](https://github.com/moby/moby)
-- [Linuxkit](https://github.com/linuxkit/linuxkit)
+- [Go 1.9.x](https://golang.org/)
+- [Linuxkit](https://github.com/linuxkit/linuxkit) `go get -u github.com/linuxkit/linuxkit/src/cmd/linuxkit`
 
 ### Build
 ```
-moby build linuxkit.yml
+linuxkit build rpi3.yml
 ```
 
 ### Run
 ```shell
-sudo linuxkit run hyperkit -cpus 4 -mem "1024" -disk size=10G -networking vmnet linuxkit
+sudo linuxkit run hyperkit -cpus 4 -mem "1024" -disk size=10G -networking vmnet rpi3
 ```
