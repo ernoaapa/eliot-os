@@ -2,12 +2,31 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/ernoaapa/eliot
     steps:
       - checkout
+
+      - setup_remote_docker
+
       - run:
-          name: Greeting
-          command: echo Hello, world.
+          name: Install tools
+          command: |
+            go get -u github.com/linuxkit/linuxkit/src/cmd/linuxkit
+            go get -u github.com/estesp/manifest-tool
+
       - run:
-          name: Print the Current Time
-          command: date
+          name: Login Docker hub
+          command: echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
+    
+      - run:
+          name: Build & push images
+          command: |
+            cd pkg
+            make forcepush
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
