@@ -60,7 +60,7 @@ jobs:
           name: Build RasperryPI3 distro
           command: |
             mkdir dist/
-            curl -X POST --data-binary @rpi3 -o dist/rasperrypi3-image.tar http://build.eliot.run/linuxkit/eliot-os/build/rpi3
+            curl --fail -X POST --data-binary @rpi3.yml http://build.eliot.run/linuxkit/eliot-os-raspberrypi3/build/rpi3 | tar xv -C dist
             ghr -token $GITHUB_TOKEN -username $CIRCLE_PROJECT_USERNAME -repository $CIRCLE_PROJECT_REPONAME $CIRCLE_TAG dist/
 
 workflows:
@@ -75,9 +75,6 @@ workflows:
                 - /.*/
 
       - publish-packages:
-          requires:
-            - test
-          
           # Don't run when branches updates, only when tags get created
           filters:
             branches:
@@ -87,9 +84,6 @@ workflows:
                 - /v.*/
 
       - publish-linuxkit:
-          requires:
-            - test
-          
           # Don't run when branches updates, only when tags get created
           filters:
             branches:
