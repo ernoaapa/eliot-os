@@ -1,0 +1,3 @@
+.terraform
+# Do not store state in public git repository
+*.tfstate*

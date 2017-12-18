@@ -75,14 +75,10 @@ services:
       - /var/log:/var/log # To be able to serve default containers logs through api
       - /tmp:/tmp # To be able to read temporary fifo log files
 files:
-  - path: root/.ssh/authorized_keys
-    source: /root/.ssh/authorized_keys
-    mode: "0600"
-    optional: true
   - path: /etc/hostname
     contents: raspi-abcde2e2f1e1
   - path: /etc/issue
-    source: ./banner.txt
+    contents: "wellcome to EliotOS"
   - path: /etc/machine-id
     contents: "104CECBC-6037-5FCF-AF75-80EB7040CD22"
     mode: "0600"

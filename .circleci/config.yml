@@ -1,9 +1,31 @@
+defaults: &defaults
+  docker:
+    - image: circleci/golang:1.9
+  working_directory: /go/src/github.com/ernoaapa/eliot-os
+
 version: 2
 jobs:
-  build:
-    docker:
-      - image: circleci/golang:1.9
-    working_directory: /go/src/github.com/ernoaapa/eliot
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: Install tools
+          command: |
+            go get -u github.com/linuxkit/linuxkit/src/cmd/linuxkit
+            go get -u github.com/estesp/manifest-tool
+
+      - run:
+          name: Build & push linuxkit package images
+          command: |
+            cd pkg
+            make forcebuild
+
+  publish-packages:
+    <<: *defaults
     steps:
       - checkout
 
@@ -20,13 +42,52 @@ jobs:
           command: echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
     
       - run:
-          name: Build & push images
+          name: Build & push linuxkit package images
           command: |
             cd pkg
             make forcepush
+  
+  publish-linuxkit:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - run:
+          name: Install tools
+          command: go get github.com/tcnksm/ghr
+
+      - run:
+          name: Build RasperryPI3 distro
+          command: |
+            mkdir dist/
+            curl -X POST --data-binary @rpi3 -o dist/rasperrypi3-image.tar http://build.eliot.run/linuxkit/eliot-os/build/rpi3
+            ghr -token $GITHUB_TOKEN -username $CIRCLE_PROJECT_USERNAME -repository $CIRCLE_PROJECT_REPONAME $CIRCLE_TAG dist/
 
 workflows:
   version: 2
-  build:
+  build_and_test:
     jobs:
-      - build
+      - test
+      - publish-packages:
+          requires:
+            - test
+          
+          # Don't run when branches updates, only when tags get created
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only:
+                - /v.*/
+
+      - publish-linuxkit:
+          requires:
+            - test
+          
+          # Don't run when branches updates, only when tags get created
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only:
+                - /v.*/
