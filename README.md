@@ -1,4 +1,5 @@
-# EliotOS
+# EliotOS [![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/eliot-run)
+
 EliotOS is minimal Linux Operating System, built with [Linuxkit](https://github.com/linuxkit/linuxkit), which contains only minimal components to run [Eliot](https://github.com/ernoaapa/eliot).
 
 - [Linux kernel](https://github.com/linuxkit/linuxkit/tree/master/kernel)
