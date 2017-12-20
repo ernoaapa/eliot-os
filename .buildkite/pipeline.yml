@@ -1,0 +1,29 @@
+steps:
+  - label: Go version
+    command: go version
+
+  - label: Docker version
+    command: docker version
+
+  - label: Install tools
+    command:
+      - go get -u github.com/linuxkit/linuxkit/src/cmd/linuxkit
+      - go get -u github.com/estesp/manifest-tool
+      - go get -u github.com/tcnksm/ghr
+      # Ensure jq is installed
+      - echo '{}' | jq '.'
+
+  - wait
+
+  - label: Build linuxkit package images
+    branches: "!v*"
+    command:
+      - cd pkg
+      - make forcebuild
+
+  - label: Build & push linuxkit package images
+    branches: "v*"
+    command:
+      - echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
+      - cd pkg
+      - make forcepush
