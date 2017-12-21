@@ -68,20 +68,15 @@ workflows:
   build_and_test:
     jobs:
       - test:
-          # Don't run when branches updates, only when tags get created
           filters:
             tags:
               ignore:
                 - /.*/
 
       - publish-packages:
-          # Don't run when branches updates, only when tags get created
           filters:
             branches:
-              ignore: /.*/
-            tags:
-              only:
-                - /v.*/
+              only: master
 
       - publish-linuxkit:
           # Don't run when branches updates, only when tags get created
