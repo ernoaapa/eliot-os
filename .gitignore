@@ -7,3 +7,5 @@ images
 *-initrd.img
 *-kernel
 *-state/
+
+dist
