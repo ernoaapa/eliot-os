@@ -19,10 +19,16 @@ jobs:
             go get -u github.com/estesp/manifest-tool
 
       - run:
-          name: Build & push linuxkit package images
+          name: Build linuxkit package images
           command: |
             cd pkg
             make forcebuild
+      - run:
+          name: Build linuxkit
+          command: |
+            mkdir dist/
+            curl --fail -X POST --data-binary @rpi3.yml http://build.eliot.run/linuxkit/eliot-os-raspberrypi3/build/rpi3 | tar xv -C dist
+            find ./dist/initrd.uimg -type f -size +20M | grep -q "."
 
   publish-packages:
     <<: *defaults
