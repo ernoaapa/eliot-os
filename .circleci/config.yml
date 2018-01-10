@@ -82,7 +82,7 @@ workflows:
       - publish-packages:
           filters:
             branches:
-              only: master
+              only: /.*/
 
       - publish-linuxkit:
           # Don't run when branches updates, only when tags get created
