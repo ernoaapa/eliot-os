@@ -21,8 +21,9 @@ reverse lookup = no
 EOF
 
 for volume in $VOLUMES; do
+module=${volume//\//_} # Replace / with underscore to make module name
 cat <<EOF >> ${CONF_FILE}
-[${volume}]
+[${module}]
     hosts deny = *
     hosts allow = ${ALLOW}
     read only = false
