@@ -26,7 +26,9 @@ At the moment, there's pre-built image for RaspberryPI 3 available.
 linuxkit build rpi3.yml
 ```
 
-#### Run
+#### Run locally
+You can run EliotOS locally with `linuxkit` but keep in mind that the **environment is amd64 not arm64** so container images what work in the local development environment, are not suitable for RaspberryPI use.
+
 ```shell
 sudo linuxkit run hyperkit -cpus 4 -mem "1024" -disk size=10G -networking vmnet rpi3
 ```
