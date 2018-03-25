@@ -22,7 +22,7 @@ steps:
       - make forcebuild
 
   - label: Build & push linuxkit package images
-    branches: "master !v*" # Don't run for tags
+    branches: "master" # Don't run for tags
     command:
       - echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
       - cd pkg
