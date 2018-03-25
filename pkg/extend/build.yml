@@ -1,0 +1,6 @@
+org: ernoaapa
+image: extend
+gitrepo: https://github.com/ernoaapa/eliot-os
+arches:
+  - arm64
+  - amd64
