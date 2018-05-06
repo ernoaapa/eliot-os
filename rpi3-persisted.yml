@@ -1,0 +1,119 @@
+kernel:
+  image: linuxkit/kernel:4.14.27
+  cmdline: "console=tty0 console=ttyS0 console=ttyAMA0"
+init:
+  - linuxkit/init:b212cfeb4bb6330e0a7547d8010fe2e8489b677a
+  - linuxkit/runc:7c39a68490a12cde830e1922f171c451fb08e731
+  - linuxkit/containerd:37e397ebfc6bd5d8e18695b121166ffd0cbfd9f0
+  - linuxkit/ca-certificates:v0.2
+onboot:
+  - name: sysctl
+    image: linuxkit/sysctl:v0.2
+  - name: netdev
+    image: linuxkit/modprobe:v0.2
+    # smsc95xx - https://github.com/linuxkit/linuxkit/blob/master/docs/platform-rpi3.md#networking
+    # mmc_block - Load MMC block device driver so the sdcard is visible in /dev/mmc*
+    command: ["modprobe", "-a", "smsc95xx", "mmc_block" ]
+  - name: extend
+    # Note: temporarily use ernoaapa/extend to extend the last partition
+    # See: https://github.com/linuxkit/linuxkit/issues/2971
+    image: ernoaapa/extend:187548787419ea12ce02025cc50cf6ff5d6bfc7a
+    command: ["/usr/bin/extend", "/dev/mmcblk0"]
+  - name: format
+    image: linuxkit/format:v0.2
+    command: ["/usr/bin/format", "-force", "-type", "ext4", "-label", "DATA", "-verbose", "/dev/sda"]
+  - name: mount-disk
+    image: linuxkit/mount:v0.2
+    # command: ["/usr/bin/mountie", "/dev/mmcblk0p2", "/var"]
+    command: ["/usr/bin/mountie", "-device", "/dev/sda1", "/var/foo"]
+    binds:
+    - /dev:/dev
+    - /var:/var:rshared,rbind
+    - /:/hostroot
+    - /etc/fstab:/etc/fstab
+    - /mnt:/mnt
+  # - name: mount-fstab
+  #   image: linuxkit/mount:v0.2
+  #   binds:
+  #   - "/etc/fstab:/etc/fstab"
+  #   command: ["/bin/mount", "-a", "-v"]
+  # - name: mount-tmp
+  #   image: linuxkit/mount:v0.2
+  #   command: ["/bin/sh", "-c", "mkdir -p /mnt/tmp && mount --bind /mnt/tmp /tmp"]
+  # - name: mount-containers
+  #   image: linuxkit/mount:v0.2
+  #   command: ["/bin/sh", "-c", "mkdir -p /mnt/containers && mount --bind /mnt/containers /containers"]
+  # - name: mount-var
+  #   image: linuxkit/mount:v0.2
+  #   command: ["/bin/sh", "-c", "mkdir -p /mnt/var && mount --bind /mnt/var /var"]
+  - name: dhcpcd
+    image: linuxkit/dhcpcd:v0.2
+    # Halts until dhcpcd can resolve ip address
+    command: ["/sbin/dhcpcd", "--nobackground", "-f", "/dhcpcd.conf", "-1"]
+
+services:
+  - name: getty
+    image: linuxkit/getty:v0.2
+    env:
+    # Makes the terminal open without password prompt
+    - INSECURE=true
+    binds:
+      - "/etc/resolv.conf:/etc/resolv.conf"
+      - "/run:/run"
+      - "/tmp:/tmp"
+      - "/etc:/hostroot/etc"
+      - "/usr/bin/ctr:/usr/bin/ctr"
+      - "/usr/bin/runc:/usr/bin/runc"
+      - "/containers:/containers"
+      - "/var/log:/var/log"
+      - "/dev:/dev"
+      - "/sys:/sys"
+      - "/proc:/hostroot/proc"
+      - "/var:/var"
+      - "/var/foo:/var/foo"
+  - name: ntpd
+    image: linuxkit/openntpd:v0.2
+  - name: dhcpcd
+    image: linuxkit/dhcpcd:v0.2
+  
+  - name: eliotd
+    image: ernoaapa/eliotd:v0.2.8
+    command: ["/eliotd", "--debug", "--profile", "--grpc-api-listen", "0.0.0.0:5000"]
+    capabilities:
+      - all
+    net: host
+    pid: host
+    runtime:
+      mkdir: ["/var/lib/volumes"]
+    binds:
+      - /containers:/containers
+      - /var/lib/volumes:/var/lib/volumes
+      - /var/lib/containerd:/var/lib/containerd
+      - /run/containerd:/run/containerd
+      - /etc/resolv.conf:/etc/resolv.conf
+      - /etc/machine-id:/etc/machine-id
+      - /var/log:/var/log # To be able to serve default containers logs through api
+      - /tmp:/tmp # To be able to read temporary fifo log files
+      - /run:/run
+      - /dev:/dev
+      - /sys:/sys
+
+files:
+  - path: /etc/issue
+    contents: "welcome to EliotOS"
+  - path: /etc/machine-id
+    contents: "todo-generate"
+    mode: "0600"
+  # - path: /etc/fstab
+  #   contents: |
+  #     /mnt/containers  /containers            bind    bind
+  #     /mnt/var/lib     /var/lib               bind    bind
+  #     /mnt/var/log     /var/log               bind    bind
+  #     /mnt/tmp         /tmp                   bind    bind
+trust:
+  org:
+    - linuxkit
+# image:
+#   partitions:
+#     - { start: 1048576, size: 104857600, boot: true, type: "fat32" } # 100MB partition for boot
+#     - { start: 105906688, size: 52428800, type: "ext4" } # 50MB partition (get extended on boot) for persisted
