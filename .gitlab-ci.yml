@@ -1,0 +1,58 @@
+image: golang:1.10-stretch
+
+variables:
+  REPO_NAME: github.com/ernoaapa/eliot-os
+
+stages:
+- test
+- build
+- publish
+
+before_script:
+  - go version
+  # Move project under $GOPATH
+  - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
+  - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
+  - cd $GOPATH/src/$REPO_NAME
+  # Build tools
+  - go get -u github.com/linuxkit/linuxkit/src/cmd/linuxkit
+  # - go get -u github.com/estesp/manifest-tool
+  # - go get -u github.com/tcnksm/ghr
+  # Ensure jq is installed
+  - apt-get install -y jq
+  - echo '{}' | jq '.'
+  # Configure Docker
+  - ./build/install-docker.sh
+  - echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
+
+test:
+  stage: test
+  tags:
+    - arm64
+  script:
+    - cd pkg
+    - make forcebuild
+
+publish:arm64:
+  stage: publish
+  tags:
+    - arm64
+  script:
+    - cd pkg
+    - GOOS=linux GOARCH=arm64 make forcepush
+
+publish:armv6:
+  stage: publish
+  tags:
+    - armv6
+  script:
+    - cd pkg
+    - GOOS=linux GOARCH=arm GOARM=6 make forcepush
+
+publish:armv7:
+  stage: publish
+  tags:
+    - armv7
+  script:
+    - cd pkg
+    - GOOS=linux GOARCH=arm GOARM=7 make forcepush
